@@ -1,0 +1,30 @@
+package chal1_1
+
+import (
+	"encoding/base64"
+	"encoding/hex"
+	"fmt"
+	"log"
+)
+
+func main() {
+	input := []byte("49276d206b696c6c696e6720796f757220627261696e206c696b65206120706f69736f6e6f7573206d757368726f6f6d")
+	decoded := make([]byte, hex.DecodedLen(len(input)))
+
+	n, err := hex.Decode(decoded, input)
+
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	fmt.Printf("%s\n", decoded[:n])
+	fmt.Println(decoded)
+
+	// StdEncoding is a built in var for the standard base64 encoding
+	// more verobsely the line could be:
+	//enc := base64.StdEncoding
+	//base64Encoded := enc.EncodeToString(decoded)
+	base64Encoded := base64.StdEncoding.EncodeToString(decoded)
+
+	fmt.Println(base64Encoded)
+}

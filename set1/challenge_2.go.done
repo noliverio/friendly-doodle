@@ -1,0 +1,41 @@
+// Fixed xor
+package main
+
+import (
+	"encoding/hex"
+	"fmt"
+	"log"
+)
+
+func main() {
+	// decode the input
+	input := "1c0111001f010100061a024b53535009181c"
+
+	input_deco, err := hex.DecodeString(input)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	// decode the key
+	key := "686974207468652062756c6c277320657965"
+
+	key_deco, err := hex.DecodeString(key)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	// creatge destination byte slice and xor each byte.
+	// can use xor because byte is alias to uint8
+	// and xor (^) works for integers
+	decoded_message := make([]byte, len(input_deco))
+
+	for i := range input_deco {
+		decoded_message[i] = input_deco[i] ^ key_deco[i]
+	}
+
+	// hex encode the decoded_message to verify against given answer
+	decoded_message_hex := hex.EncodeToString(decoded_message)
+
+	fmt.Println(decoded_message_hex)
+
+}
