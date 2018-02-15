@@ -1,0 +1,57 @@
+package main
+
+import (
+	"encoding/hex"
+	"fmt"
+	"log"
+)
+
+// find the most common byte in my map
+func max(m map[byte]int) byte {
+	largest := 1
+	var largest_value byte
+	for value := range m {
+		if m[value] > largest {
+			largest_value = value
+			largest = m[value]
+		}
+	}
+	return largest_value
+}
+
+func main() {
+	// convert from hex
+	input_string := "1b37373331363f78151b7f2b783431333d78397828372d363c78373e783a393b3736"
+	input_deco, err := hex.DecodeString(input_string)
+
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	// create a map of values to count of thier occurences
+	mapping := make(map[byte]int)
+
+	for i := range input_deco {
+		mapping[input_deco[i]]++
+	}
+
+	max_val := max(mapping)
+
+	// assume that the most common value is e.
+	//|-> actually assume that the most common value is white space assuming
+	//|-> e is not working, and it looks like the most common value is semi regularly spaced
+	// xor that value to get the xor key
+
+	e := byte(' ')
+
+	key := e ^ max_val
+
+	// xor the message to verify result.
+	output := make([]byte, len(input_deco))
+
+	for i := range input_deco {
+		output[i] = input_deco[i] ^ key
+	}
+
+	fmt.Printf("%s\n", output)
+}
