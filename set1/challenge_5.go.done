@@ -1,0 +1,37 @@
+package main
+
+import (
+	"encoding/hex"
+	"fmt"
+)
+
+func encrypt(str []byte, key []byte) []byte {
+	// create output slice, iterate over the input, xor-ing with key mod key_length
+	output := make([]byte, len(str))
+	for i := range str {
+		key_position := i % len(key)
+		output[i] = str[i] ^ key[key_position]
+	}
+	return output
+}
+
+func main() {
+	input_slice := []byte("Burning 'em, if you ain't quick and nimble\x0AI go crazy when I hear a cymbal")
+	key := []byte("ICE")
+
+	encrypted_slice := encrypt(input_slice, key)
+
+	hex_encrypted := hex.EncodeToString(encrypted_slice)
+
+	fmt.Printf("%s\n", hex_encrypted)
+
+	// newline comes up as 67, after xor with I which is 73
+	// before encryption this would have been 12(linefeed) in the official results
+	//test := "0b3637272a2b2e63622c2e69692a23693a2a3c6324202d623d63343c2a26226324272765272a282b2f20430a652e2c652a3124333a653e2b2027630c692b20283165286326302e27282f"
+	//	test_slice, err := hex.DecodeString(test)
+	//	if err != nil {
+	//	}
+	//	fmt.Println(test_slice)
+	//	fmt.Println(encrypted_slice)
+	// can use \r0A ( \x hex code) construction for linefeed in go
+}

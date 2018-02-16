@@ -1,0 +1,70 @@
+//Detect single-character XOR
+package main
+
+import (
+	"bufio"
+	"encoding/hex"
+	"fmt"
+	"log"
+	"os"
+)
+
+func check(err error) {
+	if err != nil {
+		log.Fatal(err)
+	}
+}
+
+func max(m map[byte]int) byte {
+	largest := 1
+	var largest_value byte
+	for value := range m {
+		if m[value] > largest {
+			largest_value = value
+			largest = m[value]
+		}
+	}
+	return largest_value
+}
+
+func decodeSingleCharXor(input_string string) {
+    // use the code from challenge 3 to find the single char xor'd string
+	input_deco, err := hex.DecodeString(input_string)
+	check(err)
+
+	mapping := make(map[byte]int)
+
+	for i := range input_deco {
+		mapping[input_deco[i]]++
+	}
+
+	max_val := max(mapping)
+
+	most_common := byte(' ')
+
+	key := most_common ^ max_val
+
+	output := make([]byte, len(input_deco))
+
+	for i := range input_deco {
+		output[i] = input_deco[i] ^ key
+	}
+
+	fmt.Printf("%s\n", output)
+}
+
+func main() {
+	//open the file and read it's contents into the decoder 
+	file, err := os.Open("./challenge_4.txt")
+	check(err)
+
+	scanner := bufio.NewScanner(file)
+
+	// advance line then read line into decoder
+	for scanner.Scan() {
+		decodeSingleCharXor(scanner.Text())
+	}
+
+	// ok this works and all, but how to automate looking through the junk?
+
+}
