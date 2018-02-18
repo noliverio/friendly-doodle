@@ -1,0 +1,153 @@
+package main
+
+import (
+	"encoding/base64"
+	"io/ioutil"
+
+	"errors"
+	"fmt"
+	"math/bits"
+)
+
+func check(err error) {
+	if err != nil {
+		fmt.Println(err)
+	}
+}
+
+func hamming(str1 []byte, str2 []byte) (int, error) {
+	// number of substitutions needed to go from string one to string 2
+	// assumes strings of equal length
+
+	if len(str1) != len(str2) {
+		err := errors.New("string length mismatch")
+		return 0, err
+	}
+	// seems like the way to go would be take each char and xor them,
+	// for each 1 in the result add 1 to a counter
+	// go stdlib, math/bits has a function called OnesCount (need OnesCount8 because bytes are 8 bits) That does this.
+	count := 0
+	for i := range str1 {
+		xord := str1[i] ^ str2[i]
+		count += bits.OnesCount8(xord)
+	}
+
+	return count, nil
+}
+
+func keysize_estimator(str []byte) int {
+	// From challenge:
+	//
+	// 3.  For each KEYSIZE, take the first KEYSIZE worth of bytes, and the second KEYSIZE worth of bytes, and find the edit distance between them. Normalize this result by dividing by KEYSIZE.
+	// 4. The KEYSIZE with the smallest normalized edit distance is probably the key. You could proceed perhaps with the smallest 2-3 KEYSIZE values. Or take 4 KEYSIZE blocks instead of 2 and average the distances.
+	//
+	// Start with simple path, only get the best with 2 keysize blocks
+	// then build from there.
+	min := 14 // did not work with min val =2, could should add option to return best few values. empericall 14 works though
+	max := 40
+	len := 0
+	var best = map[string]float64{
+		"score": 50,
+		"value": 0,
+	}
+
+	for len = min; len <= max; len++ {
+		// Use 4 keysize blocks and average them then normalize
+		//	|-> this seems to work well emperically
+		dist1, _ := hamming(str[:len], str[len:len*2])
+		dist2, _ := hamming(str[len*2:len*3], str[len*3:len*4])
+
+		dist := float64(dist1+dist2) / 2
+		normalized := dist / float64(len)
+		if normalized < best["score"] {
+			best["value"] = float64(len)
+			best["score"] = normalized
+		}
+	}
+	return int(best["value"])
+
+}
+
+func breaker(src []byte, keysize int) [][]byte {
+	// 5. Now that you probably know the KEYSIZE: break the ciphertext into blocks of KEYSIZE length.
+	// |-> I think it will be easier to do this step conceptually and use mod len() to break the text up.
+	// |-> Instead of actually createing a separte slice of slices
+	// 6. Now transpose the blocks: make a block that is the first byte of every block, and a block that is the second byte of every block, and so on.
+	// |-> This on the other hand I think would be easier to do in code using a slice of slices
+
+	output := make([][]byte, keysize)
+	for i := 0; i < keysize-1; i++ {
+		output[i] = make([]byte, 0)
+	}
+
+	// do the work of assigning the values to their blocks
+	for i, value := range src {
+		output[i%keysize] = append(output[i%keysize], value)
+	}
+
+	return output
+}
+
+func max(m map[byte]int) byte {
+	largest := 1
+	var largest_value byte
+	for value := range m {
+		if m[value] > largest {
+			largest_value = value
+			largest = m[value]
+		}
+	}
+	return largest_value
+}
+
+func decodeSingleCharXor(input_string []byte) byte {
+	// use the code from challenge 4 to find the single char xor'd strings
+
+	mapping := make(map[byte]int)
+
+	for i := range input_string {
+		mapping[input_string[i]]++
+	}
+
+	max_val := max(mapping)
+
+	most_common := byte(' ')
+
+	key := most_common ^ max_val
+
+	return key
+}
+
+func decodeMultiCharXor(input_string []byte, key []byte) []byte {
+	// Once you have the key actually decode the string
+	decoded_text := make([]byte, len(input_string))
+	for i, value := range input_string {
+		decoded_text[i] = value ^ key[i%len(key)]
+	}
+	return decoded_text
+}
+
+func main() {
+	// Read in the file and base64 decode it
+	contents, err := ioutil.ReadFile("challenge_6.txt")
+	check(err)
+	content_bytes, err := base64.StdEncoding.DecodeString(string(contents))
+
+	//estimate the key size
+
+	keysize := keysize_estimator(content_bytes)
+
+	// break the file into it's constituent parts
+
+	transposed_ciphertext := breaker(content_bytes, keysize)
+
+	// find the key
+	key := make([]byte, keysize)
+	for i, value := range transposed_ciphertext {
+		key[i] = decodeSingleCharXor(value)
+		fmt.Printf("%s\n", key)
+	}
+	// decode and print to stdout
+	decoded_text := decodeMultiCharXor(content_bytes, key)
+	fmt.Printf("%s\n", decoded_text)
+}
