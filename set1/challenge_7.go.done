@@ -1,0 +1,54 @@
+package main
+
+import (
+	"fmt"
+	"io/ioutil"
+
+	"crypto/aes"
+	"encoding/base64"
+)
+
+func check(err error) {
+	if err != nil {
+		fmt.Println(err)
+	}
+}
+
+func main() {
+	// read the file and base64 decode the contents
+	key := []byte("YELLOW SUBMARINE")
+	content, err := ioutil.ReadFile("challenge_7.txt")
+	check(err)
+
+	src := make([]byte, base64.StdEncoding.DecodedLen(len(content)))
+	_, err = base64.StdEncoding.Decode(src, content)
+	check(err)
+
+	//		// create an aes cypher block
+	//		block, err := aes.NewCipher(key)
+	//		check(err)
+	//
+	//		// decrypt the contents
+	//		out := make([]byte, len(src))
+	//		block.Decrypt(out, src)
+	//		fmt.Printf("%s\n", out)
+	// OK I get what happend, I only decrypted one 16 byte block
+	// not the entire ciphertext
+	// 	   So to go forward I need to repeat this over each 16 byte block
+
+	numberOfBlocks := len(src) / 16
+	out := make([]byte, len(src))
+
+	// create an aes cypher block
+	block, err := aes.NewCipher(key)
+	check(err)
+
+	for i := 0; i < numberOfBlocks; i++ {
+		block.Decrypt(out[i*16:(1+i)*16], src[i*16:(1+i)*16])
+	}
+
+	fmt.Printf("%s\n", out)
+	// what is all that stuff at the end, and why does the rest seem to work out...
+	// it seems to be the last 3 blocks of the ciphertext
+
+}
