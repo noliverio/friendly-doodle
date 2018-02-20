@@ -32,17 +32,6 @@ func hamming(str1 []byte, str2 []byte) (int, error) {
 	return count, nil
 }
 func detect_ecb(ciphertext []byte, keyLen int) int {
-	//		// assume that the overlap will occur in the first two blocks
-	//		blockOne := ciphertext[:keyLen]
-	//		blockTwo := ciphertext[keyLen : keyLen*2]
-	//
-	//		simm, err := hamming(blockOne, blockTwo)
-	//		check(err)
-	//		fmt.Println(simm)
-	//
-	//		return true
-	// bad assumption
-
 	numberOfBlocks := len(ciphertext) / keyLen
 	blockOne := make([]byte, keyLen)
 	blockTwo := make([]byte, keyLen)
@@ -64,19 +53,13 @@ func detect_ecb(ciphertext []byte, keyLen int) int {
 		}
 	}
 
-	// total = total / 40
-	//fmt.Println(total)
-
-	//	// looking at the normalized values 45 is by far the lowest
-	//	// print that out block by block
-	//	if total == 45 {
-	//		for i := 0; i < 10; i++ {
-	//			fmt.Println(ciphertext[(i * 16):((i + 1) * 16)])
-	//		}
-	//	}
-	// ok yea, thats the one now lets just find it  without the hard coded value
 	total = total / 40
 	return total
+}
+
+type best struct {
+	score      int
+	ciphertext []byte
 }
 
 func main() {
@@ -87,16 +70,22 @@ func main() {
 	scanner := bufio.NewScanner(file)
 
 	// track which ciphertext has the smallest difference between block
-	best := 
 
+	best_yet := best{1000, []byte("abc")}
 
 	for scanner.Scan() {
 		hex_decoded, err := hex.DecodeString(scanner.Text())
 		check(err)
 
-		// each ciphertext is 10 blocks long
-		// fmt.Println(len(hex_decoded))
+		score := detect_ecb(hex_decoded, 16)
+		if score < best_yet.score {
+			best_yet.score = score
+			best_yet.ciphertext = hex_decoded
+		}
+	}
 
-		detect_ecb(hex_decoded, 16)
+	// Print out the ECB encrypted text block by block
+	for i := 0; i < 10; i++ {
+		fmt.Println(best_yet.ciphertext[(i * 16):((i + 1) * 16)])
 	}
 }
