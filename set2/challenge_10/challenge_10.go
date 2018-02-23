@@ -21,7 +21,7 @@ func xor(str []byte, priorBlock []byte) []byte {
 	return output
 }
 
-func cbcEncrypt(src []byte, iv []byte, key []byte) []byte {
+func CbcEncrypt(src []byte, iv []byte, key []byte) []byte {
 	block, err := aes.NewCipher(key)
 	utils.Check(err)
 	blockLen := len(key)
@@ -42,7 +42,7 @@ func cbcEncrypt(src []byte, iv []byte, key []byte) []byte {
 
 }
 
-func cbcDecrypt(src []byte, iv []byte, key []byte) []byte {
+func CbcDecrypt(src []byte, iv []byte, key []byte) []byte {
 	// Want both encryption and decryption working.
 	// Base decryption on encyption code
 	block, err := aes.NewCipher(key)
@@ -76,8 +76,8 @@ func Main() {
 	//
 	//	myStringPlain := []byte("KABUTO KABUTO KABUTO KABUTO KABUTO KABUTO KABUTO KABUTO KABUTO K")
 	//
-	//	myStringEncrypted := cbcEncrypt(myStringPlain, initVector, key)
-	//	myStringDecrypted := cbcDecrypt(myStringEncrypted, initVector, key)
+	//	myStringEncrypted := CbcEncrypt(myStringPlain, initVector, key)
+	//	myStringDecrypted := CbcDecrypt(myStringEncrypted, initVector, key)
 	//
 	//	fmt.Printf("%s\n", myStringPlain)
 	//	fmt.Printf("%s\n", myStringEncrypted)
@@ -95,7 +95,7 @@ func Main() {
 	intiVector := []byte("\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00")
 	key := []byte("YELLOW SUBMARINE")
 
-	decrypted := cbcDecrypt(src, intiVector, key)
+	decrypted := CbcDecrypt(src, intiVector, key)
 
 	fmt.Printf("%s\n", decrypted)
 

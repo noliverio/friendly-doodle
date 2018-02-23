@@ -2,7 +2,7 @@ package challenge_9
 
 import "fmt"
 
-func pad(message []byte, blockLength int) []byte {
+func Pad(message []byte, blockLength int) []byte {
 	// apply a padding to the end of the message such that the number of bytes in the padding
 	// is the byte used for the padding
 	bytesNeeded := blockLength - len(message)
@@ -22,5 +22,5 @@ func pad(message []byte, blockLength int) []byte {
 }
 
 func Main() {
-	fmt.Println(pad([]byte("YELLOW SUBMARINE"), 20))
+	fmt.Println(Pad([]byte("YELLOW SUBMARINE"), 20))
 }
