@@ -72,7 +72,7 @@ func randomPadding(src []byte) []byte {
 	return padded
 }
 
-func detectBlockMode(cipherText []byte) string {
+func DetectBlockMode(cipherText []byte) string {
 	// I am assuming a 16 byte key, and my 43 byte repeating char string
 	// With these two assumptions blocks 2 and 3 will be the same in ebc.
 	// So just look for that...
