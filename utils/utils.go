@@ -24,3 +24,15 @@ func PrintBlocks(ciphertext []byte, key []byte) error {
 
 	return nil
 }
+
+func PPrintByteSlice(msg [][]byte) {
+	for _, str := range msg {
+		fmt.Println(str)
+	}
+}
+
+func PPrintStringSlice(msg [][]string) {
+	for _, str := range msg {
+		fmt.Println(str)
+	}
+}

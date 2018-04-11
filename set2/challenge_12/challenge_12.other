@@ -1,9 +1,0 @@
-func encrypt(msg []byte, key []byte) []byte {
-
-	paddedMsg := challenge_9.PadMessage(randomizedMsg, 16)
-	cipherText := make([]byte, len(paddedMsg))
-
-	cipherText = EcbEncrypt(paddedMsg, key)
-	return cipherText
-}
-
