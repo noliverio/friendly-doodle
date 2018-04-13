@@ -1,9 +1,9 @@
 package main
 
 import (
-	"friendly-doodle/set2/challenge_11"
+	"friendly-doodle/set2/challenge_12"
 )
 
 func main() {
-	challenge_11.Main()
+	challenge_12.Main()
 }

@@ -21,7 +21,7 @@ func EcbEncrypt(src []byte, key []byte) []byte {
 
 	output := make([]byte, len(src))
 	for i := 0; i < numberOfBlocks; i++ {
-		block.Encrypt(output[(i*16):((i+1)*16)], src[(i*16):((i+1)*16)])
+		block.Encrypt(output[(i*keyLength):((i+1)*keyLength)], src[(i*keyLength):((i+1)*keyLength)])
 	}
 
 	return output
@@ -105,6 +105,6 @@ func Main() {
 		for i := 0; i < 4; i++ {
 			fmt.Println(cipherText[i*16 : (i+1)*16])
 		}
-		fmt.Println(detectBlockMode(cipherText))
+		fmt.Println(DetectBlockMode(cipherText))
 	}
 }
