@@ -25,6 +25,7 @@ func Encrypt(msg []byte, key []byte) []byte {
 	return cipherText
 }
 
+// Use this function as a way to contain the secret and the password from the rest of the program
 func encryptionWrapper(myMessage []byte) []byte {
 	secret_base64 := "Um9sbGluJyBpbiBteSA1LjAKV2l0aCBteSByYWctdG9wIGRvd24gc28gbXkgaGFpciBjYW4gYmxvdwpUaGUgZ2lybGllcyBvbiBzdGFuZGJ5IHdhdmluZyBqdXN0IHRvIHNheSBoaQpEaWQgeW91IHN0b3A/IE5vLCBJIGp1c3QgZHJvdmUgYnkK"
 	secretMessage, err := base64.StdEncoding.DecodeString(secret_base64)
@@ -44,15 +45,28 @@ func encryptionWrapperDev(myMessage []byte) []byte {
 
 func buildAttackMap(blockLen int, blockNum int, known []byte) map[string]byte {
 
+	// generate a map of all possible strings to thier respective byte
 	plainMap := buildMap(blockLen, known)
-	// encrypt each string to create an attack map
 	attackMap := make(map[string]byte)
 
+	// encrypt each string to create an attack map
 	for mapKey, value := range plainMap {
-		attackMap[string(encryptionWrapper([]byte(mapKey)))[((blockNum/2)*blockLen):(((blockNum/2)+1)*blockLen)]] = value
-		fmt.Printf("%v \n", encryptionWrapper([]byte(mapKey))[(blockNum*blockLen):((blockNum+1)*blockLen)])
-		fmt.Printf("%v \n", encryptionWrapper([]byte(mapKey)))
+		attackBlock := utils.ECBBlock{}
+		attackBlock.Text = encryptionWrapper([]byte(mapKey))
+		attackBlock.BlockLen = blockLen
+
+		// block 0 is a special case, we are not prepending any known blocks, so it will be block 0.
+		if blockNum == 0 {
+			_, err := attackBlock.SelectBlock(0)
+			utils.Check(err)
+		} else {
+			_, err := attackBlock.SelectBlock(blockNum - 1)
+			utils.Check(err)
+		}
+		// build out the map
+		attackMap[string(attackBlock.CurrentBlock)] = value
 	}
+
 	return attackMap
 
 }
@@ -86,16 +100,17 @@ func buildMap(blockLen int, known []byte) map[string]byte {
 }
 
 // create AttackStrings takes the secret mesage and appends bytes to the begining
-func createAttackStrings(blockLen int) [][]byte {
+func createAttackStrings(blockLen int) []utils.ECBBlock {
 	attackPrefixes := make([][]byte, blockLen)
 	for i := 0; i < blockLen; i++ {
 		attackPrefixes[i] = make([]byte, i)
 	}
 
-	attackStrings := make([][]byte, len(attackPrefixes))
+	attackStrings := make([]utils.ECBBlock, len(attackPrefixes))
 
 	for pos, str := range attackPrefixes {
-		attackStrings[pos] = encryptionWrapper(str)
+		attackStrings[pos].Text = encryptionWrapper(str)
+		attackStrings[pos].BlockLen = blockLen
 	}
 
 	return attackStrings
@@ -105,6 +120,10 @@ func attack() {
 	// create the set of attack strings
 	// iteratively decrypt the secret message byte by byte
 
+	// this works because I am able to append anything to the secret string,
+	// and have it sent through the same encryption process. In ECB ecnryption this will
+	// cause identical inputs to create identical outputs.
+
 	blockSize := 16
 	blockNum := 0
 	attackStringSelector := 15
@@ -113,28 +132,21 @@ func attack() {
 
 	attackStrings := createAttackStrings(blockSize)
 
-	for range attackStrings[0] {
-		// decrypt the first byte
+	fmt.Println("BlockNum: 0")
+	for range attackStrings[0].Text {
+		// decrypt each byte
 		attackMap := buildAttackMap(blockSize, blockNum, known)
+		attackedBlock, err := attackStrings[attackStringSelector].SelectBlock(blockNum)
+		utils.Check(err)
 
-		attackedBlock := string(attackStrings[attackStringSelector][(blockNum * blockSize):((blockNum + 1) * blockSize)])
-		byt, ok := attackMap[attackedBlock]
+		byt, ok := attackMap[string(attackedBlock)]
 		if ok {
 			known = append(known, byt)
-			fmt.Println(byt)
-		} else {
-			fmt.Println("AttackedBlock:")
-			fmt.Printf("%v, \n", []byte(attackedBlock))
-			//			for key := range attackMap {
-			//				fmt.Printf("%v \n", []byte(key))
-			//			}
 		}
 
 		if attackStringSelector == 0 {
 			attackStringSelector = 15
 			blockNum++
-			fmt.Println("BlockNum: ")
-			fmt.Println(blockNum)
 		} else {
 			attackStringSelector--
 		}
