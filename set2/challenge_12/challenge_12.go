@@ -5,13 +5,14 @@ import (
 	"encoding/base64"
 	"fmt"
 
-	"friendly-doodle/utils"
+	"crypto/rand"
 
 	"friendly-doodle/set2/challenge_11"
 	"friendly-doodle/set2/challenge_9"
-	"math/rand"
+	"friendly-doodle/utils"
 )
 
+// generate a random 16 byte key
 var key = make([]byte, 16)
 var _, _ = rand.Read(key)
 
@@ -30,7 +31,8 @@ func encryptionWrapper(myMessage []byte) []byte {
 	secret_base64 := "Um9sbGluJyBpbiBteSA1LjAKV2l0aCBteSByYWctdG9wIGRvd24gc28gbXkgaGFpciBjYW4gYmxvdwpUaGUgZ2lybGllcyBvbiBzdGFuZGJ5IHdhdmluZyBqdXN0IHRvIHNheSBoaQpEaWQgeW91IHN0b3A/IE5vLCBJIGp1c3QgZHJvdmUgYnkK"
 	secretMessage, err := base64.StdEncoding.DecodeString(secret_base64)
 	utils.Check(err)
-	key := []byte("12345678abcdefgh")
+
+	//	key := []byte("12345678abcdefgh")
 	msg := append(myMessage, secretMessage...)
 	return Encrypt(msg, key)
 }
