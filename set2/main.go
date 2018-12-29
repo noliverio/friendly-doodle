@@ -1,7 +1,7 @@
 package main
 
 import (
-	challenge "friendly-doodle/set2/challenge_13"
+	challenge "github.com/noliverio/friendly-doodle/set2/challenge_14"
 )
 
 func main() {

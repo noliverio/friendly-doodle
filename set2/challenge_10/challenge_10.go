@@ -5,7 +5,7 @@ import (
 
 	"encoding/base64"
 	"fmt"
-	"friendly-doodle/utils"
+	"github.com/noliverio/friendly-doodle/utils"
 	"io/ioutil"
 )
 
