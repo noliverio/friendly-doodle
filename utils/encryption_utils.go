@@ -3,6 +3,7 @@ package utils
 import (
 	"crypto/aes"
 	"errors"
+	//"fmt"
 )
 
 // Encrypt takes a message and key, pads it appropriately, encrypts the message, and returns the cipher text
@@ -10,6 +11,7 @@ func Encrypt(msg []byte, key []byte, args map[string][]byte) ([]byte, error) {
 
 	paddedMsg := PadMessage(msg, len(key))
 	cipherText := make([]byte, len(paddedMsg))
+	var err error
 
 	_, ok := args["blockMode"]
 	if !ok {
@@ -20,9 +22,20 @@ func Encrypt(msg []byte, key []byte, args map[string][]byte) ([]byte, error) {
 
 	switch string(args["blockMode"]) {
 	case "ECB":
-		cipherText = ecbEncrypt(paddedMsg, key)
+		cipherText, err = ecbEncrypt(paddedMsg, key)
+		if err != nil {
+			return nil, err
+		}
 	case "CBC":
-		cipherText = cbcEncrypt(paddedMsg, key, args["iv"])
+		_, ok = args["iv"]
+		if !ok {
+			err := errors.New("Initialization vector required for block mode: CBC. Please provide an \"iv\" parameter in args")
+			return nil, err
+		}
+		cipherText, err = cbcEncrypt(paddedMsg, key, args["iv"])
+		if err != nil {
+			return nil, err
+		}
 	default:
 		err := errors.New("Supported block modes are ECB and CBC please select one of these.")
 		return nil, err
@@ -31,10 +44,12 @@ func Encrypt(msg []byte, key []byte, args map[string][]byte) ([]byte, error) {
 }
 
 //
-func ecbEncrypt(src []byte, key []byte) []byte {
+func ecbEncrypt(src []byte, key []byte) ([]byte, error) {
 	keyLength := len(key)
 	block, err := aes.NewCipher(key)
-	Check(err)
+	if err != nil {
+		return nil, err
+	}
 	numberOfBlocks := len(src) / keyLength
 
 	output := make([]byte, len(src))
@@ -42,13 +57,15 @@ func ecbEncrypt(src []byte, key []byte) []byte {
 		block.Encrypt(output[(i*keyLength):((i+1)*keyLength)], src[(i*keyLength):((i+1)*keyLength)])
 	}
 
-	return output
+	return output, nil
 }
 
 //
-func cbcEncrypt(src []byte, key []byte, iv []byte) []byte {
+func cbcEncrypt(src []byte, key []byte, iv []byte) ([]byte, error) {
 	block, err := aes.NewCipher(key)
-	Check(err)
+	if err != nil {
+		return nil, err
+	}
 	blockLen := len(key)
 	numberOfBlocks := len(src) / blockLen
 
@@ -63,7 +80,7 @@ func cbcEncrypt(src []byte, key []byte, iv []byte) []byte {
 		blockCipher = xorSlices(src[(i*16):((i+1)*16)], output[((i-1)*16):(i*16)])
 		block.Encrypt(output[(i*16):((i+1)*16)], blockCipher)
 	}
-	return output
+	return output, nil
 
 }
 

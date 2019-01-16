@@ -49,23 +49,24 @@ func compareBlock(block1, block2 []byte) (bool, error) {
 
 // = Decryption Attack Functions =
 
-func BuildEcbAttackString(blockLen int) {}
+func BuildEcbAttackString(blockLen int)[]byte {
+    return []byte("123")}
 
 // create AttackStrings takes the secret mesage and appends bytes to the begining
-func createAttackStrings(blockLen int) []utils.ECBBlock {
-	attackPrefixes := make([][]byte, blockLen)
-	for i := 0; i < blockLen; i++ {
-		attackPrefixes[i] = make([]byte, i)
-	}
-
-	attackStrings := make([]utils.ECBBlock, len(attackPrefixes))
-
-	for pos, str := range attackPrefixes {
-		attackStrings[pos].Text = encryptionWrapper(str)
-		attackStrings[pos].BlockLen = blockLen
-	}
-
-	return attackStrings
-}
+//func createAttackStrings(blockLen int) []utils.ECBBlock {
+//	attackPrefixes := make([][]byte, blockLen)
+//	for i := 0; i < blockLen; i++ {
+//		attackPrefixes[i] = make([]byte, i)
+//	}
+//
+//	attackStrings := make([]utils.ECBBlock, len(attackPrefixes))
+//
+//	for pos, str := range attackPrefixes {
+//		attackStrings[pos].Text = encryptionWrapper(str)
+//		attackStrings[pos].BlockLen = blockLen
+//	}
+//
+//	return attackStrings
+//}
 
 func BuildEcbAttackMap() {}
